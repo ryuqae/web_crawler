@@ -12,7 +12,7 @@ parser.add_argument("--end", required=True, help="crawling until.")
 args=parser.parse_args()
 
 start, end = int(args.start), int(args.end)
-
+headers = {"user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.89 Safari/537.36"}
 
 
 
@@ -26,7 +26,7 @@ class WebCrawler:
     def get_document_srl_per_page(self, params: dict) -> list:
         q = parse.urlencode(params)
         url = self.base_url + q
-        result = requests.get(url)
+        result = requests.get(url, headers=headers)
         result_html = result.text
 
         soup = BeautifulSoup(result_html, 'html.parser')
@@ -39,7 +39,7 @@ class WebCrawler:
 
     def _get_contents(self, document_srl:int) -> dict:
         post_url = f'https://www.ddanzi.com/free/{document_srl}'
-        result = requests.get(post_url)
+        result = requests.get(post_url, headers=headers)
         result_html = result.text
 
 

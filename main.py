@@ -41,16 +41,8 @@ class WebCrawler:
                     parse.parse_qs(link["href"])["document_srl"][0]
                 )
                 pages_docs.append(content)
-            return pd.DataFrame(pages_docs, columns=["id", "title", "text", "time"])
-
-            # return pd.DataFrame(
-            #     [
-            #         self._get_contents(parse.parse_qs(link["href"])["document_srl"][0])
-            #         for link in links[4:]
-            #     ],
-            #     columns=["id", "title", "text", "time"],
-            # )
-
+            # return pages_docs
+            return pd.DataFrame([item for item in pages_docs], columns=["id", "title", "text", "time"])
         else:
             print("Error occured")
             pass
@@ -75,17 +67,28 @@ class WebCrawler:
 
         return document_srl, title, text, time
 
-    def crawl(self, page: int) -> list:
-        self._get_document_srl_per_page({"page": page, "m": 1})
+    def crawl(self, start_page: int) -> list:
+        output = []
+        start_timestamp = datetime.now()
+
+        for idx, page in enumerate(range(start_page, start_page+10)):
+            order = idx+1
+            per_page = self._get_document_srl_per_page({"page": page, "m": 1})
+            output.append(per_page)
+            now_timestamp = datetime.now()
+            print(f"{order} pages scraped: {round(order/10,4)}%, {now_timestamp-start_timestamp} passed.")
+
+        pd.concat(output).to_pickle(f'./ddanzi_from_{start}_to_{end}_{start_page+10}.pkl', protocol=4)
+
 
 
 # 189416
 if __name__ == "__main__":
-    start_timestamp = datetime.now()
     bot = WebCrawler()
     pool = Pool(processes=4)
-    pool.map(bot.crawl, range(start, end, 1))
+
     print(f"Crawling DDANZI from {start} to {end}")
+    pool.map(bot.crawl, range(start, end, 10))
 
     # for page in range(start, end):
     #     now_timestamp = datetime.now()

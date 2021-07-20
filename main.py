@@ -6,9 +6,11 @@ import pandas as pd
 import argparse
 from datetime import datetime
 
+
+
 parser = argparse.ArgumentParser(description='Process some integers.')
-parser.add_argument("--start", required=True, help="start crawling from.")
-parser.add_argument("--end", required=True, help="crawling until.")
+parser.add_argument("--start", required=False, default=1, help="start crawling from.")
+parser.add_argument("--end", required=False, default=5, help="crawling until.")
 args=parser.parse_args()
 
 start, end = int(args.start), int(args.end)
@@ -22,7 +24,8 @@ class WebCrawler:
     def __init__(self) -> None:
         self.base_url = f"https://www.ddanzi.com/index.php?mid=free&"
         pass
-
+    
+    @profile
     def get_document_srl_per_page(self, params: dict) -> list:
         q = parse.urlencode(params)
         url = self.base_url + q
@@ -36,7 +39,7 @@ class WebCrawler:
 
         return pd.DataFrame([self._get_contents(parse.parse_qs(link['href'])['document_srl'][0]) for link in links[4:]], columns=['id', 'title', 'text', 'time'])
             
-
+    @profile
     def _get_contents(self, document_srl:int) -> dict:
         post_url = f'https://www.ddanzi.com/free/{document_srl}'
         result = requests.get(post_url, headers=headers)

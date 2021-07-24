@@ -5,6 +5,7 @@ from urllib import parse
 import pandas as pd
 import argparse
 from datetime import datetime
+import time, random
 
 
 
@@ -77,6 +78,8 @@ if __name__=="__main__":
             docs_ = bot.get_document_srl_per_page({"page":page, "m":1})
             hund_pages_docs.append(docs_)
         print(f"{ith} pages scraped: {round(ith/(end-start)*100, 4)}%, {now_timestamp-start_timestamp} passed.")
+        time.sleep(random.uniform(0,3)) 
+
 
 
     # print(a.get_contents(133455569))

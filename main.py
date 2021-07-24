@@ -25,7 +25,7 @@ class WebCrawler:
         self.base_url = f"https://www.ddanzi.com/index.php?mid=free&"
         pass
     
-    @profile
+    # @profile
     def get_document_srl_per_page(self, params: dict) -> list:
         q = parse.urlencode(params)
         url = self.base_url + q
@@ -39,7 +39,7 @@ class WebCrawler:
 
         return pd.DataFrame([self._get_contents(parse.parse_qs(link['href'])['document_srl'][0]) for link in links[4:]], columns=['id', 'title', 'text', 'time'])
             
-    @profile
+    # @profile
     def _get_contents(self, document_srl:int) -> dict:
         post_url = f'https://www.ddanzi.com/free/{document_srl}'
         result = requests.get(post_url, headers=headers)
@@ -67,16 +67,17 @@ if __name__=="__main__":
     bot = WebCrawler()
     hund_pages_docs = []
     
-    for page in range(start, end):
+    for idx, page in enumerate(range(start, end)):
         now_timestamp = datetime.now()
-        if page % 1000 == 0:
-            print(f"{page} pages scraped: {round(page/(end-start)*100, 4)}%, {now_timestamp-start_timestamp} passed.")
+        ith = idx+1
+        if ith % 1000 == 0:
             pd.concat(hund_pages_docs).to_pickle(f'./ddanzi_from_{start}_to_{end}_{page}.pkl', protocol=4)
             hund_pages_docs = []
         else:
-            print(f"{page} pages scraped: {round(page/(end-start)*100, 4)}%, {now_timestamp-start_timestamp} passed.")
             docs_ = bot.get_document_srl_per_page({"page":page, "m":1})
             hund_pages_docs.append(docs_)
+        print(f"{ith} pages scraped: {round(ith/(end-start)*100, 4)}%, {now_timestamp-start_timestamp} passed.")
+
 
     # print(a.get_contents(133455569))
 

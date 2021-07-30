@@ -1,8 +1,12 @@
 import multiprocessing
 import requests
+from requests.api import post
+import urllib3
+from urllib.parse import parse_qs
 from bs4 import BeautifulSoup
 import unicodedata
-import pandas as pd
+
+# import pandas as pd
 import argparse
 from datetime import datetime
 import time, random
@@ -10,6 +14,7 @@ import os
 from multiprocessing import Manager, Pool
 from http_request_randomizer.requests.proxy.requestProxy import RequestProxy
 from fake_headers import Headers
+import logging
 
 
 parser = argparse.ArgumentParser(description="Process some integers.")
@@ -23,14 +28,14 @@ start, end = int(args.start), int(args.end)
 class WebCrawler:
     def __init__(self, header: Headers) -> None:
         self.base_url = f"https://www.ddanzi.com/index.php?mid=free&m=1"
-        self.proxies = self.proxy_create()
         self.headers = header.generate()
+        self.proxies = self.proxy_create()
 
     def proxy_create(self):
         """
         무작위로 프록시를 생성해서 가져오는 코드
         """
-        self.req_proxy = RequestProxy()
+        self.req_proxy = RequestProxy(log_level=logging.DEBUG)
         proxy = self.test_proxy()  # 잘 작동되는 프록시 선별
         proxies = {}  # requests.get 인자에 넣어줄 딕셔너리 생성
         proxies["http"] = "http://%s" % proxy
@@ -42,15 +47,23 @@ class WebCrawler:
         test_url : 자신의 IP를 확인하는 코드. 여기서 변경된 IP가 나오면 성공적으로 우회가된것
         """
 
-        test_url = "http://ipv4.icanhazip.com"
+        test_url = self.base_url
         while True:  # 제대로된 프록시가 나올때까지 무한반복
-            requests = self.req_proxy.generate_proxied_request(test_url)
+            request = self.req_proxy.generate_proxied_request(
+                test_url, headers=self.headers, req_timeout=10
+            )
 
-            if requests is not None:
-                print(
-                    "\t Response: ip={0}".format("".join(requests.text).encode("utf-8"))
-                )
+            if request is not None:
+                print(f"\t Response {request}: {self.req_proxy.current_proxy}")
                 proxy = self.req_proxy.current_proxy
+                soup = BeautifulSoup(request.text, "html.parser")
+                search_result = soup.select_one("#list_style")
+                links = search_result.select("li > .titleBox > a")
+
+                #     srls = [parse.parse_qs(link["href"])["document_srl"][0] for link in links[4:]]
+                srls = [link["href"] for link in links[4:]]
+
+                print(srls)
                 break
 
             else:
@@ -60,11 +73,32 @@ class WebCrawler:
 
     def get_request(self, url):
         try:
-            result = requests.get(url, headers=self.headers, proxies=self.proxies)
-        except requests.exceptions.RequestException as error:
-            print(f"Request Exception Error - Regenerating Proxies...")
-            self.proxies = self.proxy_create()
-            result = requests.get(url, headers=self.headers, proxies=self.proxies)
+            print(self.proxies)
+            result = requests.request(
+                method="GET",
+                url=url,
+                headers=self.headers,
+                proxies=self.proxies,
+                verify=True,
+                timeout=10,
+            )
+
+        except (
+            requests.exceptions.RequestException,
+            # requests.exceptions.ConnectTimeout,
+            # urllib3.exceptions.ConnectTimeoutError,
+        ) as error:
+            print(f"Request Exception Error - Regenerating Proxies...{error}")
+            self.proxies = {"http": f"http://{self.test_proxy()}"}
+
+            result = requests.request(
+                method="GET",
+                url=url,
+                headers=self.headers,
+                proxies=self.proxies,
+                verify=True,
+                timeout=10,
+            )
         return result.text
 
     # @profile
@@ -110,18 +144,26 @@ class WebCrawler:
         post_text = unicodedata.normalize(
             "NFKD", contents.select_one(".read_content").get_text().strip()
         )
+        post_url = parse_qs(post_url)["document_srl"][0]
 
         result_list.append([post_url, post_title, post_text, post_time])
-        print(post_url, post_title, post_text, post_time, os.getpid())
+        print(
+            post_url,
+            post_title,
+            post_text,
+            post_time,
+            os.getpid(),
+            "\n====================\n",
+        )
 
-        # return post_url, post_title, post_text, post_time
+        return post_url, post_title, post_text, post_time
 
 
 if __name__ == "__main__":
     start_timestamp = datetime.now()
     print(f"Crawling DDANZI from {start} to {end}")
 
-    pool = Pool(8)
+    pool = Pool(4)
     manager = Manager()
     result_list = manager.list()
 
@@ -133,10 +175,13 @@ if __name__ == "__main__":
 
     bot = WebCrawler(header=header)
     for page in range(1, 100):
+        print(f"processing page #{page} : proxy {bot.proxies}")
 
         all_urls = bot.get_post_urls(page)
+        print(all_urls)
         pool.starmap(bot.get_contents, [(result_list, link) for link in all_urls])
-        time.sleep(random.uniform(0, 5))
+
+        time.sleep(random.uniform(10, 30))
 
     # print(result_list)
 

@@ -19,13 +19,27 @@ headers = {
     "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.89 Safari/537.36"
 }
 
+def logging_time(original_fn):
+    def wrapper_fn(*args, **kwargs):
+        start_time = time.time()
+        result = original_fn(*args, **kwargs)
+        end_time = time.time()
+        print(
+            "== WorkingTime[{}]: {} sec".format(
+                original_fn.__name__, end_time - start_time
+            )
+        )
+        return result
+
+    return wrapper_fn
+
 
 class WebCrawler:
     def __init__(self) -> None:
         self.base_url = f"https://www.ddanzi.com/index.php?mid=free&"
         pass
 
-    # @profile
+    @logging_time
     def get_document_srl_per_page(self, params: dict) -> list:
         q = parse.urlencode(params)
         url = self.base_url + q
@@ -44,7 +58,7 @@ class WebCrawler:
 
         
 
-    # @profile
+    @logging_time
     def _get_contents(self, document_srl: int) -> dict:
         post_url = f"https://www.ddanzi.com/free/{document_srl}"
         result = requests.get(post_url, headers=headers)
@@ -87,7 +101,7 @@ if __name__ == "__main__":
         ith = idx + 1
 
         docs_ = bot.get_document_srl_per_page({"page": page, "m": 1})
-        print(f"page{page} : {len(docs_)}")
+        print(f"page #{page} : {len(docs_)}")
         with open(f"/media/bcache/jeongwoo/ddanzi/ddanzi_page_{page}.json", "w", encoding="UTF-8") as f:
             json.dump(docs_, f, ensure_ascii=False)
 
@@ -103,4 +117,4 @@ if __name__ == "__main__":
         print(
             f"{ith} pages scraped: {round(ith/(end-start+1)*100, 4)}%, {now_timestamp-start_timestamp} passed."
         )
-        time.sleep(random.uniform(5, 10))
+        time.sleep(random.uniform(10, 20))

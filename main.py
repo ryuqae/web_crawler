@@ -86,7 +86,6 @@ class WebCrawler:
                 "url": post_url,
             }
 
-        # print(output)
         return output
 
 

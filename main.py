@@ -60,31 +60,36 @@ class WebCrawler:
     @logging_time
     def _get_contents(self, document_srl: int) -> dict:
         post_url = f"https://www.ddanzi.com/free/{document_srl}"
-        result = requests.get(post_url, headers=headers)
-        result_html = result.text
+        try:
+            result = requests.get(post_url, headers=headers)
+            result_html = result.text
 
-        soup = BeautifulSoup(result_html, "html.parser")
+            soup = BeautifulSoup(result_html, "html.parser")
 
-        contents = soup.select_one(".boardR")
+            contents = soup.select_one(".boardR")
 
-        header = contents.select_one(".read_header > .top_title")
-        post_title = header.select_one("h1 > a").get_text().strip()
+            header = contents.select_one(".read_header > .top_title")
+            post_title = header.select_one("h1 > a").get_text().strip()
 
-        # user = header.select_one('div.right > a').get_text().strip()
-        post_time = header.select_one("div.right > p.time").get_text().strip()
-        post_text = unicodedata.normalize(
-            "NFKD", contents.select_one(".read_content").get_text().strip()
-        )
+            # user = header.select_one('div.right > a').get_text().strip()
+            post_time = header.select_one("div.right > p.time").get_text().strip()
+            post_text = unicodedata.normalize(
+                "NFKD", contents.select_one(".read_content").get_text().strip()
+            )
 
-        output = {
-            "id": document_srl,
-            "title": post_title,
-            "text": post_text,
-            "time": post_time,
-            "url": post_url,
-        }
+            output = {
+                "id": document_srl,
+                "title": post_title,
+                "text": post_text,
+                "time": post_time,
+                "url": post_url,
+            }
+            time.sleep(random.uniform(0, 5))
+            return output
 
-        return output
+        except:
+            print("error occur")
+            pass
 
 
 # 189416
@@ -98,8 +103,9 @@ if __name__ == "__main__":
 
         docs_ = bot.get_document_srl_per_page({"page": page, "m": 1})
         print(f"page #{page} : {len(docs_)}")
+        # f"/media/bcache/jeongwoo/ddanzi/ddanzi_page_{page}.json",
         with open(
-            f"ddanzi/ddanzi_page_{page}.json",
+            f"/home/ubuntu/workspace/web_crawler/ddanzi/ddanzi_page_{page}.json",
             "w",
             encoding="UTF-8",
         ) as f:
@@ -109,4 +115,4 @@ if __name__ == "__main__":
         print(
             f"{ith} pages scraped: {round(ith/(end-start+1)*100, 4)}%, {now_timestamp-start_timestamp} passed."
         )
-        time.sleep(random.uniform(0, 5))
+        time.sleep(random.uniform(5, 10))

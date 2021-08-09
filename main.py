@@ -92,7 +92,6 @@ class WebCrawler:
             pass
 
 
-# 189416
 if __name__ == "__main__":
     start_timestamp = datetime.now()
     print(f"Crawling DDANZI from {start} to {end}")
@@ -105,11 +104,11 @@ if __name__ == "__main__":
         print(f"page #{page} : {len(docs_)}")
         # f"/media/bcache/jeongwoo/ddanzi/ddanzi_page_{page}.json",
         with open(
-            f"/home/ubuntu/workspace/web_crawler/ddanzi/ddanzi_page_{page}.json",
+            f"/media/bcache/jeongwoo/ddanzi/ddanzi_page_{page}.json",
             "w",
             encoding="UTF-8",
         ) as f:
-            json.dump(docs_, f, ensure_ascii=False, indent=4)
+            json.dump(docs_, f, ensure_ascii=False)
 
         now_timestamp = datetime.now()
         print(

@@ -1,0 +1,1 @@
+nohup /home/jeongwoo/miniconda3/envs/test/bin/python /home/jeongwoo/workspace/3_WebCrawler/main.py --start 26829 --end 60000 > crawl.log 2>&1 & echo $! > crawl.pid

@@ -84,7 +84,7 @@ class WebCrawler:
                 "time": post_time,
                 "url": post_url,
             }
-            time.sleep(random.uniform(0, 5))
+            time.sleep(random.uniform(0, 3))
             return output
 
         except:
@@ -114,4 +114,4 @@ if __name__ == "__main__":
         print(
             f"{ith} pages scraped: {round(ith/(end-start+1)*100, 4)}%, {now_timestamp-start_timestamp} passed."
         )
-        time.sleep(random.uniform(0, 5))
+        time.sleep(random.uniform(0, 3))

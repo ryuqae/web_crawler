@@ -9,9 +9,11 @@ import time, random
 import json
 import os
 
-data_dir = '/media/bcache/jeongwoo/ddanzi'
-latest = max([int(os.path.splitext(page)[0].split('_')[-1]) for page in os.listdir(data_dir)])
-
+data_dir = 'ddanzi'
+if len(os.listdir(data_dir)) > 0:
+    latest = max([int(os.path.splitext(page)[0].split('_')[-1]) for page in os.listdir(data_dir)])
+else:
+    latest = 130000
 
 parser = argparse.ArgumentParser(description="Process some integers.")
 parser.add_argument("--start", required=False, default=latest, help="start crawling from.")
@@ -108,7 +110,7 @@ if __name__ == "__main__":
         print(f"page #{page} : {len(docs_)}")
         # f"/media/bcache/jeongwoo/ddanzi/ddanzi_page_{page}.json",
         with open(
-            f"/media/bcache/jeongwoo/ddanzi/ddanzi_page_{page}.json",
+            f"{data_dir}/ddanzi_page_{page}.json",
             "w",
             encoding="UTF-8",
         ) as f:

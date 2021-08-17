@@ -7,11 +7,15 @@ import argparse
 from datetime import datetime
 import time, random
 import json
+import os
+
+data_dir = '/media/bcache/jeongwoo/ddanzi'
+latest = max([int(os.path.splitext(page)[0].split('_')[-1]) for page in os.listdir(data_dir)])
 
 
 parser = argparse.ArgumentParser(description="Process some integers.")
-parser.add_argument("--start", required=False, default=1, help="start crawling from.")
-parser.add_argument("--end", required=False, default=5, help="crawling until.")
+parser.add_argument("--start", required=False, default=latest, help="start crawling from.")
+parser.add_argument("--end", required=False, default=latest+50000, help="crawling until.")
 args = parser.parse_args()
 
 start, end = int(args.start), int(args.end)

@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import unicodedata
 from urllib import parse
+import numpy as np
 
 import argparse
 from datetime import datetime
@@ -9,7 +10,7 @@ import time, random
 import json
 import os
 
-data_dir = 'ddanzi'
+data_dir = '/media/bcache/jeongwoo/ddanzi'
 if len(os.listdir(data_dir)) > 0:
     latest = max([int(os.path.splitext(page)[0].split('_')[-1]) for page in os.listdir(data_dir)])
 else:
@@ -90,7 +91,7 @@ class WebCrawler:
                 "time": post_time,
                 "url": post_url,
             }
-            time.sleep(random.uniform(0, 3))
+            # time.sleep(random.uniform(0, 3))
             return output
 
         except:
@@ -103,7 +104,11 @@ if __name__ == "__main__":
     print(f"Crawling DDANZI from {start} to {end}")
     bot = WebCrawler()
 
-    for idx, page in enumerate(range(start, end + 1)):
+    random_pages = sorted(np.random.choice(range(start,end), int((end-start)/5), replace=False))
+
+    # for idx, page in enumerate(range(start, end + 1)):
+    for idx, page in enumerate(random_pages):
+
         ith = idx + 1
 
         docs_ = bot.get_document_srl_per_page({"page": page, "m": 1})
@@ -120,4 +125,4 @@ if __name__ == "__main__":
         print(
             f"{ith} pages scraped: {round(ith/(end-start+1)*100, 4)}%, {now_timestamp-start_timestamp} passed."
         )
-        time.sleep(random.uniform(0, 3))
+        # time.sleep(random.uniform(0, 1))
